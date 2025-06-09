@@ -1,0 +1,55 @@
+name: "CodeQL Analysis"
+
+on:
+  push:
+    branches: [ main, develop ] # Pindai saat push ke main atau develop
+  pull_request:
+    branches: [ main, develop ] # Pindai saat PR ke main atau develop
+  schedule:
+    - cron: '30 2 * * 1' # Pindai mingguan juga (misalnya, setiap Senin pukul 02:30 UTC)
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read      # Diperlukan untuk CodeQL action
+      contents: read     # Diperlukan untuk checkout kode
+      security-events: write # Diperlukan untuk melaporkan hasil pemindaian
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java-kotlin' ] # Fokus pada Java (dan Kotlin jika ada)
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Menginisialisasi alat CodeQL untuk pemindaian.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3 # Selalu disarankan menggunakan versi terbaru
+      with:
+        languages: ${{ matrix.language }}
+        # Anda dapat menentukan query suite tambahan di sini jika diperlukan, misalnya:
+        # queries: +security-extended,security-and-quality
+
+    # Untuk proyek Java dengan Maven yang sederhana, autobuild seringkali cukup.
+    # Namun, jika autobuild gagal atau proyek Anda memiliki langkah build kustom,
+    # Anda perlu mengganti langkah 'Autobuild' di bawah ini dengan langkah build manual.
+    # Contoh langkah build manual untuk Maven (jika autobuild tidak bekerja):
+    # - if: matrix.language == 'java-kotlin'
+    #   name: Set up JDK 17 for CodeQL
+    #   uses: actions/setup-java@v4
+    #   with:
+    #     java-version: '17'
+    #     distribution: 'temurin'
+    # - if: matrix.language == 'java-kotlin'
+    #   name: Build with Maven for CodeQL
+    #   run: mvn -B clean compile --file pom.xml # 'compile' cukup untuk analisis statis, atau 'package' jika diperlukan
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3 # Versi terbaru
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3 # Versi terbaru
