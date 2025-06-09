@@ -9,4 +9,8 @@ public class HelloWorldController {
     public String sayHello() {
         return "Hello, World! Welcome to CI/CD with GitHub Actions!";
     }
+    @GetMapping("/addNumbers")
+    public int addNumbers(int a, int b) {
+        return a + b;
+    }
 }
